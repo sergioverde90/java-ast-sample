@@ -1,4 +1,4 @@
-package com.sergio;
+package com.sergio.compiler_api;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
@@ -10,7 +10,7 @@ import javax.lang.model.element.TypeElement;
 import java.util.Set;
 
 @SupportedAnnotationTypes( "*" )
-@SupportedSourceVersion(SourceVersion.RELEASE_11)
+@SupportedSourceVersion(SourceVersion.RELEASE_8)
 public class CountElementProcessor extends AbstractProcessor {
 
     private final CountClassesAndMethodsFieldScanner scanner;

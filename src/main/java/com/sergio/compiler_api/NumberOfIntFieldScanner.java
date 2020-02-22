@@ -1,4 +1,4 @@
-package com.sergio;
+package com.sergio.compiler_api;
 
 import com.sun.source.tree.ClassTree;
 import com.sun.source.tree.ExpressionTree;
@@ -23,7 +23,6 @@ public class NumberOfIntFieldScanner extends TreePathScanner<Object, Trees> {
     public Object visitIf(final IfTree node, Trees trees) {
         importsNumber++;
         System.out.println("node = " + node.getThenStatement());
-        //JCTree.JCConditional
         return super.visitIf(new IfTree() {
             @Override
             public ExpressionTree getCondition() {
