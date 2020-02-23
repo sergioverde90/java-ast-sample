@@ -1,4 +1,4 @@
-package com.sergio.java_plugin;
+package com.sergio.dto;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -8,6 +8,6 @@ import java.lang.annotation.Target;
 
 @Documented
 @Retention(RetentionPolicy.CLASS)
-@Target(ElementType.PARAMETER)
-public @interface Positive {
+@Target(ElementType.TYPE)
+public @interface DTO {
 }
