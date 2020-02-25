@@ -53,6 +53,7 @@ public class SimpleJavaTranslator extends TreeTranslator {
      * }
      */
     private com.sun.tools.javac.util.List<JCTree> createGetters(Context context, ClassTree node) {
+        
         final Names names = Names.instance(context);
         final TreeMaker maker = TreeMaker.instance(context);
 
@@ -61,14 +62,14 @@ public class SimpleJavaTranslator extends TreeTranslator {
                 .map(m -> {
                     final VariableTree varTree = (VariableTree) m;
                     final Name name = names.fromString(varTree.getName().toString());
-                    final Name methodName = names.fromString("get" + name);
+                    final Name methodName = names.fromString("get" + capitalize(name));
                     final JCTree.JCExpression memberName = maker.Ident(name);
-                    final JCTree.JCExpression returnType = maker.Ident(names.fromString(varTree.getType().toString()));
+                    final Tree type = varTree.getType();
                     final JCTree.JCBlock block = maker.Block(0, List.of(maker.Return(memberName)));
                     return maker.MethodDef(
                             maker.Modifiers(Flags.PUBLIC),
                             methodName,
-                            returnType,
+                            calculateReturnType(type),
                             List.nil(),
                             List.nil(),
                             List.nil(),
@@ -76,6 +77,18 @@ public class SimpleJavaTranslator extends TreeTranslator {
                             null
                     ).getTree();
                 }).collect(Collectors.toList()));
+    }
+
+    private static String capitalize(Name name) {
+        return (char) (name.charAt(0) ^ ' ') + name.toString().substring(1);
+    }
+
+    private JCTree.JCExpression calculateReturnType(Tree type) {
+        if (type.getClass().equals(JCTree.JCPrimitiveTypeTree.class)) {
+            return (JCTree.JCPrimitiveTypeTree) type;
+        } else {
+            return (JCTree.JCIdent) type;
+        }
     }
 
     private boolean isClassAnnotated(ClassTree node) {
