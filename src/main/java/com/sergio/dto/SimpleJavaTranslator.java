@@ -4,6 +4,7 @@ import com.sun.source.tree.ClassTree;
 import com.sun.source.tree.Tree;
 import com.sun.source.tree.VariableTree;
 import com.sun.tools.javac.code.Flags;
+import com.sun.tools.javac.code.TypeTag;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeMaker;
 import com.sun.tools.javac.tree.TreeTranslator;
@@ -36,7 +37,9 @@ public class SimpleJavaTranslator extends TreeTranslator {
 
         if (isAnnotated) {
             final com.sun.tools.javac.util.List<JCTree> getters = createGetters(context, clazz);
-            clazz.defs = clazz.defs.appendList(getters);
+            final com.sun.tools.javac.util.List<JCTree> setters = createSetters(context, clazz);
+            
+            clazz.defs = clazz.defs.appendList(getters).appendList(setters);
             result = clazz;
         }
 
@@ -70,16 +73,66 @@ public class SimpleJavaTranslator extends TreeTranslator {
                             maker.Modifiers(Flags.PUBLIC),
                             methodName,
                             calculateReturnType(type),
-                            List.nil(),
-                            List.nil(),
-                            List.nil(),
+                            List.nil(), // generic type parameters
+                            List.nil(), // parameter list
+                            List.nil(), // throws clause
                             block,
                             null
                     ).getTree();
                 }).collect(Collectors.toList()));
     }
 
-    private static String capitalize(Name name) {
+    /**
+     * public void set<MemberName>(<MemberType> <MemberName>) {
+     *   this.<member> = <MemberName>;
+     * }
+     */
+    private com.sun.tools.javac.util.List<JCTree> createSetters(Context context, ClassTree node) {
+
+        final Names names = Names.instance(context);
+        final TreeMaker maker = TreeMaker.instance(context);
+
+        return com.sun.tools.javac.util.List.from(node.getMembers().stream()
+                .filter(m -> m.getKind() == Tree.Kind.VARIABLE)
+                .map(m -> {
+                    final VariableTree varTree = (VariableTree) m;
+                    final Name methodName = names.fromString("set" + capitalize(names.fromString(varTree.getName().toString())));
+                    final Name name = names.fromString(varTree.getName().toString());
+                    final JCTree.JCExpression memberName = maker.Ident(name);
+
+                    final JCTree.JCVariableDecl param = calculateParam(names, maker, varTree);
+                    final JCTree.JCAssign assign = maker.Assign(memberName, maker.Ident(param));
+                    final JCTree.JCExpressionStatement exec = maker.Exec(assign);
+                    final JCTree.JCBlock block = maker.Block(0, List.of(exec));
+                    
+                    return maker.MethodDef(
+                            maker.Modifiers(Flags.PUBLIC),
+                            methodName,
+                            maker.TypeIdent(TypeTag.VOID),
+                            List.nil(),     // generic type parameters
+                            List.of(param), // parameter list
+                            List.nil(),     // throws clause
+                            block,          // method body
+                            null    // default methods (for interface declaration)    
+                    ).getTree();
+                }).collect(Collectors.toList()));
+    }
+
+    private JCTree.JCVariableDecl calculateParam(Names names, TreeMaker maker, VariableTree varTree) {
+        JCTree.JCVariableDecl param;
+        if (varTree.getType().getClass().equals(JCTree.JCIdent.class)) {
+            JCTree.JCIdent type = (JCTree.JCIdent) varTree.getType();
+            param = maker.Param(names.fromString("a" + capitalize(varTree.getName().toString())), type.type, type.sym);
+        } else if (varTree.getType().getClass().equals(JCTree.JCPrimitiveTypeTree.class)) {
+            JCTree.JCPrimitiveTypeTree type = (JCTree.JCPrimitiveTypeTree) varTree.getType();
+            param = maker.Param(names.fromString("a" + capitalize(varTree.getName().toString())), type.type, null);
+        } else {
+            throw new IllegalStateException("type not found = " + varTree.getType().getClass());
+        }
+        return param;
+    }
+
+    private static String capitalize(CharSequence name) {
         return (char) (name.charAt(0) ^ ' ') + name.toString().substring(1);
     }
 
