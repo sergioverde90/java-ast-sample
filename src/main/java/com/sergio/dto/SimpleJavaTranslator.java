@@ -37,9 +37,11 @@ public class SimpleJavaTranslator extends TreeTranslator {
 
         if (isAnnotated) {
             final com.sun.tools.javac.util.List<JCTree> getters = createGetters(context, clazz);
-            final com.sun.tools.javac.util.List<JCTree> setters = createSetters(context, clazz);
+            //final com.sun.tools.javac.util.List<JCTree> setters = createSetters(context, clazz);
             
-            clazz.defs = clazz.defs.appendList(getters).appendList(setters);
+            clazz.defs = clazz.defs
+                    .appendList(getters);
+                    //.appendList(setters);
             result = clazz;
         }
 

@@ -8,24 +8,31 @@ import java.nio.file.Paths;
 
 public class ReloaderClassLoader extends ClassLoader {
 
-    private final String classUrl;
+    private String classUrl;
 
-    public ReloaderClassLoader(String classUrl) {
-        this.classUrl = classUrl;
+    public ReloaderClassLoader(ClassLoader parent) {
+        super(parent);
     }
 
     @Override
     public Class<?> loadClass(String name) throws ClassNotFoundException {
-        if (!name.contains("PersonSample")) return super.loadClass(name);
+        Class<?> clazz = super.loadClass(name);
+        final boolean annotationPresent = clazz.isAnnotationPresent(DTO.class);
+        if (!annotationPresent) return clazz;
+        
+        System.out.println("LOADING CLASS ANNOTATED WITH @DTO = " + name);
+        
         final Path path = Paths.get(classUrl);
-
-        final byte[] bytes;
+        
         try {
-            bytes = Files.readAllBytes(path);
+            final byte[] bytes = Files.readAllBytes(path);
+            return defineClass(name, bytes, 0, bytes.length);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
 
-        return defineClass(name, bytes, 0, bytes.length);
+    public void setClassUrl(String classUrl) {
+        this.classUrl = classUrl;
     }
 }
