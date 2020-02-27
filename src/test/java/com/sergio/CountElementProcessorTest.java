@@ -55,8 +55,7 @@ public class CountElementProcessorTest {
         Class<?> clazz = loader.loadClass("com.sergio.dto.PersonSample");
         Set<String> declaredMethods = Stream.of(clazz.getDeclaredMethods()).map(Method::getName).collect(toSet());
         assertThat(declaredMethods).contains("getId", "getName");
-        //assertThat(declaredMethods).contains("setId", "setName");
-
+        assertThat(declaredMethods).contains("setId", "setName");
     }
     
 }

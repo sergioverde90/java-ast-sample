@@ -4,7 +4,9 @@ import com.sun.source.tree.ClassTree;
 import com.sun.source.tree.Tree;
 import com.sun.source.tree.VariableTree;
 import com.sun.tools.javac.code.Flags;
+import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.TypeTag;
+import com.sun.tools.javac.code.Types;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeMaker;
 import com.sun.tools.javac.tree.TreeTranslator;
@@ -37,19 +39,16 @@ public class SimpleJavaTranslator extends TreeTranslator {
 
         if (isAnnotated) {
             final com.sun.tools.javac.util.List<JCTree> getters = createGetters(context, clazz);
-            //final com.sun.tools.javac.util.List<JCTree> setters = createSetters(context, clazz);
+            final com.sun.tools.javac.util.List<JCTree> setters = createSetters(context, clazz);
             
             clazz.defs = clazz.defs
-                    .appendList(getters);
-                    //.appendList(setters);
+                    .appendList(getters)
+                    .appendList(setters);
             result = clazz;
+
+            System.out.println("result = " + result);
         }
 
-    }
-
-    @Override
-    public void visitMethodDef(JCTree.JCMethodDecl jcMethodDecl) {
-        super.visitMethodDef(jcMethodDecl);
     }
 
     /**
@@ -93,6 +92,8 @@ public class SimpleJavaTranslator extends TreeTranslator {
 
         final Names names = Names.instance(context);
         final TreeMaker maker = TreeMaker.instance(context);
+        final Symtab symb = Symtab.instance(context);
+        final Types types = Types.instance(context);
 
         return com.sun.tools.javac.util.List.from(node.getMembers().stream()
                 .filter(m -> m.getKind() == Tree.Kind.VARIABLE)
@@ -102,8 +103,11 @@ public class SimpleJavaTranslator extends TreeTranslator {
                     final Name name = names.fromString(varTree.getName().toString());
                     final JCTree.JCExpression memberName = maker.Ident(name);
 
-                    final JCTree.JCVariableDecl param = calculateParam(names, maker, varTree);
-                    final JCTree.JCAssign assign = maker.Assign(memberName, maker.Ident(param));
+                    final String capitalizedParameterName = "a" + capitalize(varTree.getName().toString());
+                    final Name parameterName = names.fromString(capitalizedParameterName);
+
+                    final JCTree.JCVariableDecl param = calculateParam(parameterName, maker, varTree, symb, types);
+                    final JCTree.JCAssign assign = maker.Assign(memberName, maker.Ident(param.getName()));
                     final JCTree.JCExpressionStatement exec = maker.Exec(assign);
                     final JCTree.JCBlock block = maker.Block(0, List.of(exec));
                     
@@ -120,18 +124,16 @@ public class SimpleJavaTranslator extends TreeTranslator {
                 }).collect(Collectors.toList()));
     }
 
-    private JCTree.JCVariableDecl calculateParam(Names names, TreeMaker maker, VariableTree varTree) {
-        JCTree.JCVariableDecl param;
+    private JCTree.JCVariableDecl calculateParam(Name parameterName, TreeMaker maker, VariableTree varTree, Symtab syms, Types types) {
         if (varTree.getType().getClass().equals(JCTree.JCIdent.class)) {
             JCTree.JCIdent type = (JCTree.JCIdent) varTree.getType();
-            param = maker.Param(names.fromString("a" + capitalize(varTree.getName().toString())), type.type, type.sym);
+            return maker.at(type.pos).Param(parameterName, type.type, null);
         } else if (varTree.getType().getClass().equals(JCTree.JCPrimitiveTypeTree.class)) {
             JCTree.JCPrimitiveTypeTree type = (JCTree.JCPrimitiveTypeTree) varTree.getType();
-            param = maker.Param(names.fromString("a" + capitalize(varTree.getName().toString())), type.type, null);
+            return maker.Param(parameterName, type.type, syms.noSymbol);
         } else {
             throw new IllegalStateException("type not found = " + varTree.getType().getClass());
         }
-        return param;
     }
 
     private static String capitalize(CharSequence name) {
