@@ -106,7 +106,7 @@ public class SimpleJavaTranslator extends TreeTranslator {
                     final String capitalizedParameterName = "a" + capitalize(varTree.getName().toString());
                     final Name parameterName = names.fromString(capitalizedParameterName);
 
-                    final JCTree.JCVariableDecl param = calculateParam(parameterName, maker, varTree, symb, types);
+                    final JCTree.JCVariableDecl param = calculateParam(parameterName, maker, varTree, symb);
                     final JCTree.JCAssign assign = maker.Assign(memberName, maker.Ident(param.getName()));
                     final JCTree.JCExpressionStatement exec = maker.Exec(assign);
                     final JCTree.JCBlock block = maker.Block(0, List.of(exec));
@@ -124,13 +124,16 @@ public class SimpleJavaTranslator extends TreeTranslator {
                 }).collect(Collectors.toList()));
     }
 
-    private JCTree.JCVariableDecl calculateParam(Name parameterName, TreeMaker maker, VariableTree varTree, Symtab syms, Types types) {
+    private JCTree.JCVariableDecl calculateParam(Name parameterName, TreeMaker maker, VariableTree varTree, Symtab syms) {
         if (varTree.getType().getClass().equals(JCTree.JCIdent.class)) {
             JCTree.JCIdent type = (JCTree.JCIdent) varTree.getType();
             return maker.at(type.pos).Param(parameterName, type.type, null);
         } else if (varTree.getType().getClass().equals(JCTree.JCPrimitiveTypeTree.class)) {
             JCTree.JCPrimitiveTypeTree type = (JCTree.JCPrimitiveTypeTree) varTree.getType();
-            return maker.Param(parameterName, type.type, syms.noSymbol);
+            return maker.at(type.pos).Param(parameterName, type.type, syms.noSymbol);
+        } else if (varTree.getType().getClass().equals(JCTree.JCArrayTypeTree.class)) {
+            JCTree.JCArrayTypeTree type = (JCTree.JCArrayTypeTree) varTree.getType();
+            return maker.at(type.pos).Param(parameterName, type.type, syms.noSymbol);
         } else {
             throw new IllegalStateException("type not found = " + varTree.getType().getClass());
         }
@@ -143,8 +146,12 @@ public class SimpleJavaTranslator extends TreeTranslator {
     private JCTree.JCExpression calculateReturnType(Tree type) {
         if (type.getClass().equals(JCTree.JCPrimitiveTypeTree.class)) {
             return (JCTree.JCPrimitiveTypeTree) type;
-        } else {
+        } else if (JCTree.JCIdent.class.equals(type.getClass())){
             return (JCTree.JCIdent) type;
+        } else if (JCTree.JCArrayTypeTree.class.equals(type.getClass())) {
+            return (JCTree.JCArrayTypeTree) type;
+        } else {
+            throw new IllegalStateException("type not detected = " + type.getClass());
         }
     }
 

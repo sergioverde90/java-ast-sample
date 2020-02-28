@@ -9,5 +9,6 @@ public class PersonSample {
     private int age;
     private UUID id;
     private Other other;
+    private byte[] arr;
 
 }
