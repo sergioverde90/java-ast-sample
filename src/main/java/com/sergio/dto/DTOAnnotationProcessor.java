@@ -33,11 +33,14 @@ public class DTOAnnotationProcessor extends AbstractProcessor {
         final Context context = env.getContext();
         final Trees trees = Trees.instance(env);
 
-        for (Element codeElement : environment.getRootElements()) {
-            if (codeElement.getKind() != ElementKind.CLASS) continue;
-            JCTree tree = (JCTree) trees.getPath(codeElement).getCompilationUnit();
-            new SimpleJavaTranslator(context).translate(tree);
+        if (!environment.processingOver()) { // in order to avoid processing twice in the last round
+            for (Element codeElement : environment.getRootElements()) {
+                if (codeElement.getKind() != ElementKind.CLASS) continue;
+                JCTree tree = (JCTree) trees.getPath(codeElement).getCompilationUnit();
+                new SimpleJavaTranslator(context).translate(tree);
+            }
         }
-        return true;
+        
+        return false; // false as default behaviour. Process subsequent annotations if exists.
     }
 }
