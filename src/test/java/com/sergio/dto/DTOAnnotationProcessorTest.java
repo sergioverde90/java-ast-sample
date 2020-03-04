@@ -1,8 +1,5 @@
-package com.sergio;
+package com.sergio.dto;
 
-import com.sergio.dto.DTOAnnotationProcessor;
-import com.sergio.dto.PersonSample;
-import com.sergio.dto.ReloaderClassLoader;
 import org.junit.Test;
 
 import javax.tools.Diagnostic;
@@ -22,7 +19,7 @@ import static java.util.stream.Collectors.toSet;
 import static junit.framework.TestCase.fail;
 import static org.assertj.core.api.Java6Assertions.assertThat;
 
-public class CountElementProcessorTest {
+public class DTOAnnotationProcessorTest {
 
     @Test
     public void testDTOAnnotationProcessor() throws ClassNotFoundException {
