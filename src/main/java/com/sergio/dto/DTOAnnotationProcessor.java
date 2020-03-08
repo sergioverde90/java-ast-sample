@@ -16,7 +16,7 @@ import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
 import java.util.Set;
 
-@SupportedAnnotationTypes( "*" )
+@SupportedAnnotationTypes("com.sergio.dto.DTO")
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 public class DTOAnnotationProcessor extends AbstractProcessor {
 
@@ -36,8 +36,8 @@ public class DTOAnnotationProcessor extends AbstractProcessor {
         if (!environment.processingOver()) { // in order to avoid processing twice in the last round
             for (Element codeElement : environment.getRootElements()) {
                 if (codeElement.getKind() != ElementKind.CLASS) continue;
-                JCTree tree = (JCTree) trees.getPath(codeElement).getCompilationUnit();
-                new SimpleJavaTranslator(context).translate(tree);
+                JCTree tree = (JCTree) trees.getTree(codeElement);
+                tree.accept(new SimpleJavaTranslator(context));
             }
         }
         
