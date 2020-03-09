@@ -25,11 +25,6 @@ public class GetterAndSetterJavaTranslator extends TreeTranslator {
     }
 
     @Override
-    public <T extends JCTree> T translate(T t) {
-        return super.translate(t);
-    }
-
-    @Override
     public void visitClassDef(JCTree.JCClassDecl clazz) {
 
         super.visitClassDef(clazz);
