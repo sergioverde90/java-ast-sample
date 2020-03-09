@@ -16,11 +16,11 @@ import com.sun.tools.javac.util.Names;
 
 import java.util.stream.Collectors;
 
-public class SimpleJavaTranslator extends TreeTranslator {
+public class GetterAndSetterJavaTranslator extends TreeTranslator {
 
     private final Context context;
 
-    public SimpleJavaTranslator(Context context) {
+    public GetterAndSetterJavaTranslator(Context context) {
         this.context = context;
     }
 

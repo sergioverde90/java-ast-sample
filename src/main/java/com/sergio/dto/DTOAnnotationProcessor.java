@@ -37,7 +37,7 @@ public class DTOAnnotationProcessor extends AbstractProcessor {
             for (Element codeElement : environment.getRootElements()) {
                 if (codeElement.getKind() != ElementKind.CLASS) continue;
                 JCTree tree = (JCTree) trees.getTree(codeElement);
-                tree.accept(new SimpleJavaTranslator(context));
+                tree.accept(new GetterAndSetterJavaTranslator(context));
             }
         }
         
