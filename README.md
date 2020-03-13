@@ -1,13 +1,23 @@
 # HOW TO BUILD
 
+By default, Maven will look for the current JDK version and will build using the configuration of that version.
+
+You can see the current maven profile using:
+
+```bash
+mvn clean <goal> help:active-profiles
+```
+ 
+If you want to indicate the compile version:
+
 ## Using JDK <= 1.8
 ```bash
-mvn clean <stage> -Pjdk8
+mvn clean <goal> -Pjdk8
 ```
 
 ## Using JDK >= 1.9
 ```bash
-mvn clean <stage> -Pjdk8gt
+mvn clean <goal> -Pjdk8gt
 ```
 
 # COMPILER API AND AST MANIPULATION
